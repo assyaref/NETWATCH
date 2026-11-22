@@ -10,6 +10,7 @@ import json
 import mimetypes
 import os
 import secrets
+import sys
 import threading
 import time
 from http.cookies import SimpleCookie
@@ -246,6 +247,29 @@ def make_handler(store: Store, auth: Auth, engine: Engine, config: Config):
     return Handler
 
 
+def _relaunch_as_admin(argv: list[str]) -> bool:
+    """On Windows, live capture needs Administrator: re-launch elevated (UAC prompt).
+
+    Returns True when an elevated copy was started and this process should exit.
+    """
+    if sys.platform != "win32":
+        return False
+    import ctypes
+    import subprocess
+    try:
+        if ctypes.windll.shell32.IsUserAnAdmin():
+            return False
+        params = subprocess.list2cmdline(["-m", "netwatch", *argv])
+        rc = ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, params, os.getcwd(), 1)
+    except Exception:
+        return False
+    if rc > 32:
+        print("[+] NETWATCH started in a new Administrator window.")
+        return True
+    print("[!] Administrator rights declined; live capture may fail (DEMO mode still works).")
+    return False
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="netwatch", description="Office network monitoring terminal. "
                                 "All settings can be changed from the UI; flags below are optional.")
@@ -256,7 +280,12 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--port", type=int, default=8787)
     p.add_argument("--no-window", action="store_true",
                    help="Do not open the desktop window (server only, open the URL yourself)")
+    p.add_argument("--no-elevate", action="store_true",
+                   help="Windows: do not ask for Administrator rights on start")
+    argv = sys.argv[1:] if argv is None else argv
     a = p.parse_args(argv)
+    if not a.no_elevate and _relaunch_as_admin(argv):
+        return
 
     config = Config()
     # Environment variables can pre-seed the operator account (e.g. for unattended installs).

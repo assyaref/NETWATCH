@@ -41,13 +41,21 @@ sendiri. Pilih salah satu:
 
 1. Install **Python 3.13** (`winget install -e --id Python.Python.3.13`) dan [Npcap](https://npcap.com)
    (centang *WinPcap API-compatible mode*).
-2. Sekali saja, di folder ini:
+2. Sekali saja, di folder ini (memasang perintah `netwatch`):
    ```powershell
-   py -3.13 -m pip install -r requirements.txt pywebview
+   py -3.13 -m pip install -e ".[window]"
    ```
-3. Double-click **`NETWATCH.bat`** → izinkan Administrator → jendela NETWATCH terbuka.
+3. Ketik **`netwatch`** di CMD/PowerShell mana pun → izinkan Administrator (UAC) → jendela
+   NETWATCH terbuka. Alternatif: double-click `NETWATCH.bat`.
 
-Linux/macOS: `pip install -r requirements.txt` lalu `sudo python3 -m netwatch`.
+Jika muncul `'netwatch' is not recognized`, folder Scripts Python belum ada di PATH. Jalankan
+sekali di PowerShell, lalu buka terminal baru:
+```powershell
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";" + (py -3.13 -c "import sysconfig; print(sysconfig.get_path('scripts'))"), "User")
+```
+Karena dipasang dengan `-e`, cukup `git pull` untuk update (tanpa install ulang).
+
+Linux/macOS: `pip install -e .` lalu `sudo netwatch`.
 
 ## Semua diatur dari aplikasi
 
@@ -79,6 +87,7 @@ Menutup jendela = menghentikan NETWATCH.
 | `--iface NAME` / `--subnet CIDR` | Timpa pengaturan untuk sesi ini |
 | `--no-window` | Jalankan server saja, buka `http://127.0.0.1:8787` sendiri |
 | `--host` / `--port` | Alamat dashboard (default `127.0.0.1:8787`) |
+| `--no-elevate` | Windows: jangan minta hak Administrator |
 
 ## Catatan hukum & etika
 
