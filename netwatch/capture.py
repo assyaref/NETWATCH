@@ -13,6 +13,7 @@ from __future__ import annotations
 import socket
 import struct
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 from .store import Store
@@ -78,12 +79,32 @@ class Capture:
         from scapy.all import AsyncSniffer, conf  # imported lazily: needs root/capture rights
 
         conf.verb = 0
-        self.sniffer = AsyncSniffer(iface=self.iface, filter=self.bpf, prn=self._handle, store=False)
+        try:
+            self._start_sniffer(AsyncSniffer, self.bpf)
+        except Exception as e:
+            if "filter" not in str(e).lower():
+                raise
+            # libpcap missing (Linux): capture without a kernel filter; _handle skips non-IP.
+            self._start_sniffer(AsyncSniffer, None)
+
+    def _start_sniffer(self, AsyncSniffer, bpf) -> None:
+        self.sniffer = AsyncSniffer(iface=self.iface, filter=bpf, prn=self._handle, store=False)
         self.sniffer.start()
+        # Errors (no admin rights, bad interface, no Npcap) happen inside the sniffer thread;
+        # wait briefly so they can be reported to the operator instead of failing silently.
+        for _ in range(15):
+            time.sleep(0.1)
+            if self.sniffer.exception is not None:
+                raise self.sniffer.exception
+            if self.sniffer.thread is not None and not self.sniffer.thread.is_alive():
+                raise OSError("capture stopped immediately (check interface and privileges)")
 
     def stop(self) -> None:
-        if self.sniffer:
-            self.sniffer.stop()
+        if self.sniffer and self.sniffer.running:
+            try:
+                self.sniffer.stop(join=False)
+            except Exception:
+                pass
 
     # -------------------------------------------------------------------
     def _reverse_dns(self, ip: str) -> None:

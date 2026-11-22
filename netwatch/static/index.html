@@ -27,9 +27,13 @@
         <input id="u" name="username" placeholder="Enter operator username" autofocus />
         <label for="p">PASSPHRASE</label>
         <input id="p" name="password" type="password" placeholder="Enter passphrase" />
+        <div id="setup-extra" class="hidden">
+          <label for="p2">CONFIRM PASSPHRASE</label>
+          <input id="p2" type="password" placeholder="Repeat passphrase" />
+        </div>
         <button type="submit" id="login-btn" disabled>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
-          AUTHENTICATE
+          <span id="login-btn-text">AUTHENTICATE</span>
         </button>
         <p class="foot">Credentials are verified by the NETWATCH host. All access is logged.</p>
       </section>
@@ -47,9 +51,17 @@
       <div class="top-right">
         <span class="badge" id="mode-badge">—</span>
         <span class="clock" id="clock">--:--:--</span>
+        <button class="icon-btn" id="open-settings" title="Settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
         <button class="icon-btn" id="logout" title="Terminate session">✕</button>
       </div>
     </header>
+
+    <div id="engine-alert" class="alert hidden">
+      <span>⚠</span><p id="engine-alert-text"></p>
+      <button class="ghost" id="alert-settings">OPEN SETTINGS</button>
+    </div>
 
     <form class="command" id="target-form">
       <label for="target">TARGET IP</label>
@@ -131,6 +143,67 @@
         <ol id="feed"></ol>
       </aside>
     </main>
+  </div>
+  <!-- ============ SETTINGS ============ -->
+  <div id="settings" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="panel modal-panel">
+      <header class="panel-head">
+        <div class="glyph">⚙</div>
+        <div>
+          <h1 id="settings-title">SYSTEM CONFIGURATION</h1>
+          <p class="sub">CHANGES APPLY IMMEDIATELY · SAVED ON THIS MACHINE</p>
+        </div>
+        <button class="icon-btn close" id="close-settings" title="Close">✕</button>
+      </header>
+
+      <form id="capture-form" class="settings-section">
+        <h2>CAPTURE SOURCE</h2>
+        <label>MODE</label>
+        <div class="seg" id="mode-seg">
+          <button type="button" data-mode="live">● LIVE CAPTURE</button>
+          <button type="button" data-mode="demo">◌ DEMO / SIMULATION</button>
+        </div>
+
+        <div id="live-fields">
+          <label for="iface-select">NETWORK INTERFACE <button type="button" class="link" id="refresh-ifaces">↻ rescan</button></label>
+          <select id="iface-select"></select>
+          <p class="hint" id="iface-hint"></p>
+        </div>
+
+        <label for="subnet-input">OFFICE SUBNETS</label>
+        <div class="chips" id="subnet-chips"></div>
+        <div class="cmd-row">
+          <input id="subnet-input" placeholder="e.g. 192.168.1.0/24" spellcheck="false" />
+          <button type="button" class="ghost" id="add-subnet">+ ADD</button>
+          <button type="button" class="ghost" id="detect-subnet">AUTO-DETECT</button>
+        </div>
+        <p class="hint">Devices with an IP inside these ranges are tracked. Empty = detect from the interface.</p>
+
+        <button type="submit" id="apply-capture" class="wide">APPLY &amp; RESTART CAPTURE</button>
+        <p class="prompt" id="capture-prompt"></p>
+      </form>
+
+      <form id="cred-form" class="settings-section" autocomplete="off">
+        <h2>OPERATOR CREDENTIALS</h2>
+        <label for="c-user">AGENT ID</label>
+        <input id="c-user" />
+        <label for="c-cur">CURRENT PASSPHRASE</label>
+        <input id="c-cur" type="password" />
+        <label for="c-new">NEW PASSPHRASE</label>
+        <input id="c-new" type="password" />
+        <label for="c-new2">CONFIRM NEW PASSPHRASE</label>
+        <input id="c-new2" type="password" />
+        <button type="submit" class="wide">UPDATE CREDENTIALS</button>
+        <p class="prompt" id="cred-prompt"></p>
+      </form>
+
+      <div class="settings-section">
+        <h2>DATA</h2>
+        <p class="hint">Collected traffic is kept in memory only and is erased when NETWATCH closes.</p>
+        <button type="button" class="wide danger" id="purge">PURGE ALL COLLECTED DATA</button>
+        <p class="prompt" id="purge-prompt"></p>
+      </div>
+    </div>
   </div>
   <script src="/app.js"></script>
 </body>

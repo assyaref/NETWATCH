@@ -76,6 +76,15 @@ class Store:
         self.started = _now()
         self.packets_total = 0
 
+    def reset(self, subnets: list[str] | None = None, clear: bool = True) -> None:
+        with self.lock:
+            if subnets is not None:
+                self.subnets = [ipaddress.ip_network(s, strict=False) for s in subnets]
+            if clear:
+                self.devices.clear()
+                self.events.clear()
+                self.packets_total = 0
+
     # ---- helpers -------------------------------------------------------
     def is_local(self, ip: str) -> bool:
         try:

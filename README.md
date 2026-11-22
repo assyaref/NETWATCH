@@ -37,67 +37,47 @@ sendiri. Pilih salah satu:
 > (SNI biasanya masih terlihat, kecuali VPN). Matikan DoH via kebijakan browser/GPO
 > dan blokir VPN pribadi bila ingin data lengkap.
 
-## Jendela aplikasi sendiri (bukan tab browser)
+## Instalasi (Windows)
 
-NETWATCH otomatis membuka **jendela aplikasinya sendiri** tanpa tab dan address bar.
-Di Windows jendela ini memakai Microsoft Edge (sudah bawaan Windows 10/11), jadi tidak
-perlu install apa-apa lagi. Menutup jendela = menghentikan NETWATCH.
+1. Install **Python 3.13** (`winget install -e --id Python.Python.3.13`) dan [Npcap](https://npcap.com)
+   (centang *WinPcap API-compatible mode*).
+2. Sekali saja, di folder ini:
+   ```powershell
+   py -3.13 -m pip install -r requirements.txt pywebview
+   ```
+3. Double-click **`NETWATCH.bat`** → izinkan Administrator → jendela NETWATCH terbuka.
 
-**Jendela native murni (pywebview):** bila `pywebview` terpasang, NETWATCH memakainya
-otomatis. pywebview di Windows butuh `pythonnet`, yang belum mendukung Python terbaru,
-jadi pakai **Python 3.13** (boleh berdampingan dengan versi lain):
+Linux/macOS: `pip install -r requirements.txt` lalu `sudo python3 -m netwatch`.
 
-```powershell
-py -3.13 -m pip install -r requirements.txt pywebview
-```
+## Semua diatur dari aplikasi
 
-`NETWATCH.bat` otomatis memakai Python 3.13 bila terpasang.
-Untuk mode server saja (dibuka dari PC lain), tambahkan `--no-window`.
+![Settings](docs/settings.png)
 
-### Windows: cukup double-click
+- **Pertama kali dibuka**: layar login meminta Anda **membuat Agent ID & passphrase** operator.
+- Ikon **⚙ (Settings)** di kanan atas:
+  - **Mode**: LIVE CAPTURE atau DEMO / SIMULATION
+  - **Network interface**: pilih dari daftar adapter (Wi-Fi, Ethernet, …) beserta IP-nya
+  - **Office subnets**: tambah/hapus, atau **AUTO-DETECT** dari interface terpilih
+  - **APPLY & RESTART CAPTURE**: langsung berlaku, tanpa restart aplikasi
+  - Ganti Agent ID / passphrase, dan hapus semua data yang terkumpul
+- Jika capture gagal (bukan Administrator, Npcap belum terpasang, interface salah), muncul
+  peringatan merah dengan tombol **OPEN SETTINGS**.
 
-1. Install Python 3.12/3.13 (centang *Add python.exe to PATH*) dan [Npcap](https://npcap.com).
-2. Sekali saja, di folder ini: `python -m pip install -r requirements.txt`
-3. Edit `NETWATCH.bat` (klik kanan → Edit): sesuaikan `IFACE`, `SUBNET`, `NETWATCH_PASS`.
-4. Double-click **`NETWATCH.bat`**. Ia meminta izin Administrator lalu membuka jendela NETWATCH.
+Pengaturan disimpan di `%USERPROFILE%\.netwatch\config.json` (passphrase disimpan sebagai
+hash PBKDF2). Lupa passphrase? Hapus file itu, lalu buka NETWATCH untuk membuat akun baru.
 
-`NETWATCH-DEMO.bat` membuka mode simulasi (login `admin` / `demo`).
-Bisa juga buat shortcut `NETWATCH.bat` di Desktop.
+**Jendela aplikasi**: NETWATCH membuka jendela native (pywebview/WebView2). Bila pywebview
+tidak tersedia, otomatis memakai jendela Edge app mode (tanpa tab & address bar).
+Menutup jendela = menghentikan NETWATCH.
 
-## Instalasi & menjalankan
-
-Butuh Python 3.10+.
-
-```bash
-cd netwatch
-pip install -r requirements.txt
-```
-
-Coba dulu dengan **mode demo** (data simulasi, tanpa hak admin):
-
-```bash
-NETWATCH_PASS=gantiPassword python3 -m netwatch --demo
-```
-
-Buka `http://127.0.0.1:8787`, login `admin` / password di atas.
-
-Mode **live** (perlu root/Administrator; di Windows install [Npcap](https://npcap.com)):
-
-```bash
-sudo NETWATCH_USER=admin NETWATCH_PASS='password-kuat' python3 -m netwatch --iface eth0 --subnet 192.168.1.0/24
-```
+### Opsi command line (opsional)
 
 | Opsi | Fungsi |
 |---|---|
-| `--subnet CIDR` | Rentang IP kantor (boleh diulang). Default `192.168.1.0/24` |
-| `--iface NAME` | Interface yang di-capture (mis. `eth0`, `enp3s0`, `Ethernet`) |
-| `--host` / `--port` | Alamat dashboard. Default `127.0.0.1:8787` (hanya lokal) |
-| `--demo` | Data simulasi |
-| `--no-window` | Jangan buka jendela; jalankan server saja |
-
-Jika `NETWATCH_PASS` tidak diset, password acak dibuat saat start dan dicetak di konsol.
-Untuk membuka dashboard dari PC lain gunakan `--host 0.0.0.0`, sebaiknya hanya di
-jaringan admin / di belakang VPN, karena koneksi dashboard tidak memakai HTTPS.
+| `--demo` | Mulai dalam mode demo (sementara, tidak disimpan) |
+| `--iface NAME` / `--subnet CIDR` | Timpa pengaturan untuk sesi ini |
+| `--no-window` | Jalankan server saja, buka `http://127.0.0.1:8787` sendiri |
+| `--host` / `--port` | Alamat dashboard (default `127.0.0.1:8787`) |
 
 ## Catatan hukum & etika
 
@@ -112,6 +92,8 @@ lama dari yang diperlukan (NETWATCH menyimpan data di memori saja; hilang saat r
 ```
 netwatch/
   netwatch/server.py    # HTTP server, API JSON, login
+  netwatch/config.py    # pengaturan tersimpan + deteksi interface
+  netwatch/engine.py    # start/stop capture sesuai pengaturan
   netwatch/capture.py   # sniffing (scapy): DNS, TLS SNI, HTTP, DHCP
   netwatch/store.py     # statistik per perangkat (in-memory)
   netwatch/demo.py      # generator trafik simulasi
