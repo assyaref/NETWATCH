@@ -19,5 +19,8 @@ if errorlevel 1 (
 )
 
 cd /d "%~dp0"
-python -m netwatch --iface "%IFACE%" --subnet %SUBNET% %EXTRA%
+REM Pakai Python 3.13 bila ada (dibutuhkan pywebview untuk jendela native)
+set "PY=python"
+py -3.13 -c "import sys" >nul 2>&1 && set "PY=py -3.13"
+%PY% -m netwatch --iface "%IFACE%" --subnet %SUBNET% %EXTRA%
 if errorlevel 1 pause

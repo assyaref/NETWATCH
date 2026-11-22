@@ -43,7 +43,15 @@ NETWATCH otomatis membuka **jendela aplikasinya sendiri** tanpa tab dan address 
 Di Windows jendela ini memakai Microsoft Edge (sudah bawaan Windows 10/11), jadi tidak
 perlu install apa-apa lagi. Menutup jendela = menghentikan NETWATCH.
 
-Opsional, untuk jendela native murni: `pip install pywebview` (otomatis dipakai bila ada).
+**Jendela native murni (pywebview):** bila `pywebview` terpasang, NETWATCH memakainya
+otomatis. pywebview di Windows butuh `pythonnet`, yang belum mendukung Python terbaru,
+jadi pakai **Python 3.13** (boleh berdampingan dengan versi lain):
+
+```powershell
+py -3.13 -m pip install -r requirements.txt pywebview
+```
+
+`NETWATCH.bat` otomatis memakai Python 3.13 bila terpasang.
 Untuk mode server saja (dibuka dari PC lain), tambahkan `--no-window`.
 
 ### Windows: cukup double-click
