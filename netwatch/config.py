@@ -12,6 +12,8 @@ from pathlib import Path
 CONFIG_DIR = Path(os.environ.get("NETWATCH_HOME") or Path.home() / ".netwatch")
 CONFIG_FILE = CONFIG_DIR / "config.json"
 PBKDF2_ROUNDS = 240_000
+DEFAULT_USER = "admin"
+DEFAULT_PASS = "admin123"
 
 DEFAULTS = {
     "mode": "live",          # "live" | "demo"
@@ -20,6 +22,7 @@ DEFAULTS = {
     "user": "admin",
     "pass_salt": "",
     "pass_hash": "",
+    "default_password": False,
 }
 
 
@@ -34,6 +37,8 @@ class Config:
             self.data.update(json.loads(CONFIG_FILE.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             pass
+        if not self.has_password:  # first run: default operator admin / admin123
+            self.set_password(DEFAULT_USER, DEFAULT_PASS, default=True)
 
     def save(self) -> None:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,9 +54,10 @@ class Config:
     def has_password(self) -> bool:
         return bool(self.data["pass_hash"])
 
-    def set_password(self, user: str, password: str) -> None:
+    def set_password(self, user: str, password: str, default: bool = False) -> None:
         salt = secrets.token_hex(16)
-        self.data.update(user=user, pass_salt=salt, pass_hash=_hash(password, salt))
+        self.data.update(user=user, pass_salt=salt, pass_hash=_hash(password, salt),
+                         default_password=default)
         self.save()
 
     def check(self, user: str, password: str) -> bool:

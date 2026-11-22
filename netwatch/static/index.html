@@ -35,7 +35,7 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
           <span id="login-btn-text">AUTHENTICATE</span>
         </button>
-        <p class="foot">Credentials are verified by the NETWATCH host. All access is logged.</p>
+        <p class="foot" id="login-foot">Credentials are verified by the NETWATCH host. All access is logged.</p>
       </section>
     </form>
   </div>
@@ -58,6 +58,10 @@
       </div>
     </header>
 
+    <div id="pw-alert" class="alert hidden">
+      <span>⚠</span><p>Default passphrase <b>admin123</b> is still active. Change it to secure this terminal.</p>
+      <button class="ghost" id="pw-alert-btn">CHANGE PASSPHRASE</button>
+    </div>
     <div id="engine-alert" class="alert hidden">
       <span>⚠</span><p id="engine-alert-text"></p>
       <button class="ghost" id="alert-settings">OPEN SETTINGS</button>

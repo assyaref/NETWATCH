@@ -100,6 +100,7 @@ async function refreshStatus() {
   const b = $("#mode-badge");
   b.textContent = s.mode; b.classList.toggle("live", s.mode.startsWith("LIVE"));
   $("#engine-alert").classList.toggle("hidden", !s.error);
+  $("#pw-alert").classList.toggle("hidden", !s.default_password);
   if (s.error) $("#engine-alert-text").textContent = s.error;
   const up = Math.floor(s.uptime), h = Math.floor(up / 3600), m = Math.floor((up % 3600) / 60);
   $("#sysline").textContent = `SUBNET ${s.subnets.join(", ")} · IFACE ${s.iface} · ${s.devices} ASSETS · ${s.packets.toLocaleString()} PKTS · UPTIME ${h}h${String(m).padStart(2, "0")}m`;
@@ -273,6 +274,10 @@ async function openSettings() {
 }
 $("#open-settings").addEventListener("click", openSettings);
 $("#alert-settings").addEventListener("click", openSettings);
+$("#pw-alert-btn").addEventListener("click", async () => {
+  await openSettings();
+  $("#cred-form").scrollIntoView({ behavior: "smooth" }); $("#c-cur").focus();
+});
 $("#close-settings").addEventListener("click", closeSettings);
 $("#settings").addEventListener("click", (e) => { if (e.target.id === "settings") closeSettings(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
@@ -365,4 +370,7 @@ $("#purge").addEventListener("click", async () => {
 });
 
 /* ---------------- boot ---------------- */
-api("/api/session").then((s) => (s.authenticated ? showApp() : showLogin(s.setup_required))).catch(() => showLogin());
+api("/api/session").then((s) => {
+  if (s.default_password) $("#login-foot").innerHTML = "Default credentials: <b>admin</b> / <b>admin123</b> — change them in SETTINGS after login.";
+  s.authenticated ? showApp() : showLogin(s.setup_required);
+}).catch(() => showLogin());

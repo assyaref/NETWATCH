@@ -17,7 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from .config import Config, list_interfaces, validate_subnets
+from .config import DEFAULT_PASS, Config, list_interfaces, validate_subnets
 from .engine import Engine
 from .store import Store
 
@@ -136,11 +136,14 @@ def make_handler(store: Store, auth: Auth, engine: Engine, config: Config):
                 return self._static(url.path)
             if url.path == "/api/session":
                 return self._json(200, {"authenticated": auth.valid(self._token()),
-                                        "setup_required": not config.has_password, **engine.meta()})
+                                        "setup_required": not config.has_password,
+                                        "default_password": bool(config.data.get("default_password")),
+                                        **engine.meta()})
             if not auth.valid(self._token()):
                 return self._json(401, {"error": "unauthorized"})
             if url.path == "/api/status":
-                return self._json(200, {**store.status(), **engine.meta()})
+                return self._json(200, {**store.status(), **engine.meta(),
+                                        "default_password": bool(config.data.get("default_password"))})
             if url.path == "/api/devices":
                 return self._json(200, store.list_devices())
             if url.path == "/api/device":
@@ -212,6 +215,8 @@ def make_handler(store: Store, auth: Auth, engine: Engine, config: Config):
                 pw = str(b.get("password", ""))
                 if len(pw) < MIN_PASS:
                     return self._json(400, {"error": f"New passphrase must be at least {MIN_PASS} chars"})
+                if pw == DEFAULT_PASS:
+                    return self._json(400, {"error": "Choose a passphrase different from the default"})
                 config.set_password(user, pw)
                 auth.logout(None, everyone=True)
                 return self._json(200, {"ok": True, "relogin": True},
@@ -273,8 +278,8 @@ def main(argv: list[str] | None = None) -> None:
     srv = ThreadingHTTPServer((a.host, a.port), make_handler(store, Auth(config), engine, config))
     url = f"http://127.0.0.1:{a.port}" if a.host in ("0.0.0.0", "::") else f"http://{a.host}:{a.port}"
     print(f"[+] Dashboard: {url}")
-    if not config.has_password:
-        print("[+] First run: create the operator account in the NETWATCH window.")
+    if config.data.get("default_password"):
+        print("[!] Default login admin / admin123 is active. Change it in SETTINGS.")
     if a.no_window:
         try:
             srv.serve_forever()

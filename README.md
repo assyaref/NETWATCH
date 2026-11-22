@@ -53,7 +53,8 @@ Linux/macOS: `pip install -r requirements.txt` lalu `sudo python3 -m netwatch`.
 
 ![Settings](docs/settings.png)
 
-- **Pertama kali dibuka**: layar login meminta Anda **membuat Agent ID & passphrase** operator.
+- **Login default: `admin` / `admin123`.** Selama password default masih dipakai, dashboard
+  menampilkan peringatan dengan tombol **CHANGE PASSPHRASE**. Gantilah setelah login pertama.
 - Ikon **⚙ (Settings)** di kanan atas:
   - **Mode**: LIVE CAPTURE atau DEMO / SIMULATION
   - **Network interface**: pilih dari daftar adapter (Wi-Fi, Ethernet, …) beserta IP-nya
@@ -64,7 +65,7 @@ Linux/macOS: `pip install -r requirements.txt` lalu `sudo python3 -m netwatch`.
   peringatan merah dengan tombol **OPEN SETTINGS**.
 
 Pengaturan disimpan di `%USERPROFILE%\.netwatch\config.json` (passphrase disimpan sebagai
-hash PBKDF2). Lupa passphrase? Hapus file itu, lalu buka NETWATCH untuk membuat akun baru.
+hash PBKDF2). Lupa passphrase? Hapus file itu; login kembali ke `admin` / `admin123`.
 
 **Jendela aplikasi**: NETWATCH membuka jendela native (pywebview/WebView2). Bila pywebview
 tidak tersedia, otomatis memakai jendela Edge app mode (tanpa tab & address bar).
