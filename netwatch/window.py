@@ -79,6 +79,12 @@ def _try_app_mode(url: str) -> bool:
 
 
 def open_window(url: str) -> None:
+    if sys.platform == "win32":  # own taskbar entry/icon instead of grouping under Python
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("NETWATCH.Terminal")
+        except Exception:
+            pass
     if _try_pywebview(url) or _try_app_mode(url):
         return
     print("[!] No embeddable browser found; opening default browser. Press Ctrl+C to stop.")

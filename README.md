@@ -37,7 +37,25 @@ sendiri. Pilih salah satu:
 > (SNI biasanya masih terlihat, kecuali VPN). Matikan DoH via kebijakan browser/GPO
 > dan blokir VPN pribadi bila ingin data lengkap.
 
-## Instalasi (Windows)
+## Aplikasi Windows (NETWATCH.exe) — paling bersih
+
+Satu file `NETWATCH.exe` dengan ikon sendiri, **tanpa jendela console dan tanpa logo Python**,
+tidak perlu install Python. Otomatis meminta izin Administrator saat dibuka.
+
+1. Install [Npcap](https://npcap.com) (centang *WinPcap API-compatible mode*).
+2. Download `NETWATCH.exe`: tab **Actions** → run terbaru *Build NETWATCH.exe* → **Artifacts**
+   → `NETWATCH-windows` (atau dari halaman **Releases** bila tersedia).
+3. Simpan di `C:\Program Files\NETWATCH\`, buat shortcut ke Desktop/Start Menu.
+
+Agar bisa dibuka dengan mengetik `netwatch` di CMD/Run (Win+R), tambahkan folder itu ke PATH
+(PowerShell sebagai Administrator, sekali saja):
+```powershell
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","Machine") + ";C:\Program Files\NETWATCH", "Machine")
+```
+
+Build sendiri dari source: double-click `build_windows.bat` → hasil di `dist\NETWATCH.exe`.
+
+## Instalasi dari source (Windows)
 
 1. Install **Python 3.13** (`winget install -e --id Python.Python.3.13`) dan [Npcap](https://npcap.com)
    (centang *WinPcap API-compatible mode*).
@@ -108,6 +126,8 @@ netwatch/
   netwatch/store.py     # statistik per perangkat (in-memory)
   netwatch/demo.py      # generator trafik simulasi
   netwatch/window.py    # jendela desktop (pywebview / Edge app mode)
-  NETWATCH.bat          # launcher Windows (double-click)
+  NETWATCH.bat          # launcher Windows dari source
+  build_windows.bat     # build NETWATCH.exe (PyInstaller)
+  assets/               # ikon aplikasi
   netwatch/static/      # UI (HTML/CSS/JS tanpa framework)
 ```

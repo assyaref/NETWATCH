@@ -259,7 +259,8 @@ def _relaunch_as_admin(argv: list[str]) -> bool:
     try:
         if ctypes.windll.shell32.IsUserAnAdmin():
             return False
-        params = subprocess.list2cmdline(["-m", "netwatch", *argv])
+        frozen = getattr(sys, "frozen", False)  # NETWATCH.exe (PyInstaller) vs python -m netwatch
+        params = subprocess.list2cmdline(argv if frozen else ["-m", "netwatch", *argv])
         rc = ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, params, os.getcwd(), 1)
     except Exception:
         return False
@@ -268,6 +269,16 @@ def _relaunch_as_admin(argv: list[str]) -> bool:
         return True
     print("[!] Administrator rights declined; live capture may fail (DEMO mode still works).")
     return False
+
+
+def _fatal(msg: str) -> None:
+    """Report a startup error; NETWATCH.exe has no console, so use a message box there."""
+    if sys.platform == "win32" and (sys.stdout is None or getattr(sys, "frozen", False)):
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, msg, "NETWATCH", 0x10)
+    else:
+        print(f"[x] {msg}")
+    sys.exit(1)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -304,7 +315,11 @@ def main(argv: list[str] | None = None) -> None:
     except RuntimeError as e:
         print(f"[!] {e}\n    The dashboard is still available: fix it in SETTINGS.")
 
-    srv = ThreadingHTTPServer((a.host, a.port), make_handler(store, Auth(config), engine, config))
+    try:
+        srv = ThreadingHTTPServer((a.host, a.port), make_handler(store, Auth(config), engine, config))
+    except OSError as e:
+        engine.stop()
+        _fatal(f"Cannot open the dashboard on port {a.port}: NETWATCH is probably already running.\n\n({e})")
     url = f"http://127.0.0.1:{a.port}" if a.host in ("0.0.0.0", "::") else f"http://{a.host}:{a.port}"
     print(f"[+] Dashboard: {url}")
     if config.data.get("default_password"):
