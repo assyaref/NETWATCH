@@ -103,7 +103,7 @@ async function refreshStatus() {
   $("#pw-alert").classList.toggle("hidden", !s.default_password);
   if (s.error) $("#engine-alert-text").textContent = s.error;
   const up = Math.floor(s.uptime), h = Math.floor(up / 3600), m = Math.floor((up % 3600) / 60);
-  $("#sysline").textContent = `SUBNET ${s.subnets.join(", ")} · IFACE ${s.iface} · ${s.devices} ASSETS · ${s.packets.toLocaleString()} PKTS · UPTIME ${h}h${String(m).padStart(2, "0")}m`;
+  $("#sysline").textContent = `v${s.version} · SUBNET ${s.subnets.join(", ")} · IFACE ${s.iface} · ${s.devices} ASSETS · ${s.packets.toLocaleString()} PKTS · UPTIME ${h}h${String(m).padStart(2, "0")}m`;
 }
 
 /* ---------------- device list ---------------- */

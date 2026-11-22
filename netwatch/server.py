@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .config import DEFAULT_PASS, Config, list_interfaces, validate_subnets
+from ._version import __version__
 from .engine import Engine
 from .store import Store
 
@@ -143,7 +144,7 @@ def make_handler(store: Store, auth: Auth, engine: Engine, config: Config):
             if not auth.valid(self._token()):
                 return self._json(401, {"error": "unauthorized"})
             if url.path == "/api/status":
-                return self._json(200, {**store.status(), **engine.meta(),
+                return self._json(200, {**store.status(), **engine.meta(), "version": __version__,
                                         "default_password": bool(config.data.get("default_password"))})
             if url.path == "/api/devices":
                 return self._json(200, store.list_devices())
@@ -291,6 +292,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--port", type=int, default=8787)
     p.add_argument("--no-window", action="store_true",
                    help="Do not open the desktop window (server only, open the URL yourself)")
+    p.add_argument("--version", action="version", version=f"NETWATCH {__version__}")
     p.add_argument("--no-elevate", action="store_true",
                    help="Windows: do not ask for Administrator rights on start")
     argv = sys.argv[1:] if argv is None else argv

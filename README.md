@@ -43,15 +43,17 @@ Satu file `NETWATCH.exe` dengan ikon sendiri, **tanpa jendela console dan tanpa 
 tidak perlu install Python. Otomatis meminta izin Administrator saat dibuka.
 
 1. Install [Npcap](https://npcap.com) (centang *WinPcap API-compatible mode*).
-2. Download `NETWATCH.exe`: tab **Actions** → run terbaru *Build NETWATCH.exe* → **Artifacts**
-   → `NETWATCH-windows` (atau dari halaman **Releases** bila tersedia).
-3. Simpan di `C:\Program Files\NETWATCH\`, buat shortcut ke Desktop/Start Menu.
+2. Install NETWATCH — buka PowerShell, jalankan sekali:
+   ```powershell
+   irm https://raw.githubusercontent.com/assyaref/NETWATCH/main/install.ps1 | iex
+   ```
+   NETWATCH.exe dipasang di `C:\Program Files\NETWATCH`, plus shortcut Desktop & Start Menu.
+3. Buka terminal baru, lalu:
+   - **`netwatch`** → membuka aplikasi
+   - **`netwatch-update`** → memperbarui ke versi terbaru (otomatis menutup NETWATCH yang
+     sedang berjalan, mengunduh, mengganti). Versi aktif terlihat di baris atas dashboard.
 
-Agar bisa dibuka dengan mengetik `netwatch` di CMD/Run (Win+R), tambahkan folder itu ke PATH
-(PowerShell sebagai Administrator, sekali saja):
-```powershell
-[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","Machine") + ";C:\Program Files\NETWATCH", "Machine")
-```
+Setiap push ke `main` otomatis membangun dan merilis versi baru (`v1.0.N`) di **Releases**.
 
 Build sendiri dari source: double-click `build_windows.bat` → hasil di `dist\NETWATCH.exe`.
 
