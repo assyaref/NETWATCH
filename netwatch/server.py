@@ -165,6 +165,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--host", default="127.0.0.1", help="Dashboard bind address (default 127.0.0.1)")
     p.add_argument("--port", type=int, default=8787)
     p.add_argument("--demo", action="store_true", help="Simulated traffic, no capture needed")
+    p.add_argument("--no-window", action="store_true",
+                   help="Do not open the desktop window (server only, open the URL yourself)")
     a = p.parse_args(argv)
 
     subnets = a.subnet or ["192.168.1.0/24"]
@@ -175,6 +177,8 @@ def main(argv: list[str] | None = None) -> None:
     if not password:
         password = secrets.token_urlsafe(9)
         print(f"[!] NETWATCH_PASS not set. Generated one-time passphrase for '{user}': {password}")
+        if a.demo and not a.no_window:
+            print("    (keep this console open to read it)")
 
     if a.demo:
         from .demo import Demo
@@ -192,11 +196,23 @@ def main(argv: list[str] | None = None) -> None:
     meta = {"mode": mode, "iface": a.iface or "default"}
     srv = ThreadingHTTPServer((a.host, a.port), make_handler(store, Auth(user, password), meta))
     print(f"[+] NETWATCH {mode} on subnets {', '.join(subnets)}")
-    print(f"[+] Dashboard: http://{a.host}:{a.port}")
+    url = f"http://127.0.0.1:{a.port}" if a.host in ("0.0.0.0", "::") else f"http://{a.host}:{a.port}"
+    print(f"[+] Dashboard: {url}")
+    if a.no_window:
+        try:
+            srv.serve_forever()
+        except KeyboardInterrupt:
+            print("\n[+] Shutting down")
+        return
+    from .window import open_window
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
     try:
-        srv.serve_forever()
+        open_window(url)
     except KeyboardInterrupt:
-        print("\n[+] Shutting down")
+        pass
+    print("[+] Window closed, shutting down")
+    srv.shutdown()
+    os._exit(0)  # stop capture threads immediately
 
 
 if __name__ == "__main__":

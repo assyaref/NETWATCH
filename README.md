@@ -37,6 +37,25 @@ sendiri. Pilih salah satu:
 > (SNI biasanya masih terlihat, kecuali VPN). Matikan DoH via kebijakan browser/GPO
 > dan blokir VPN pribadi bila ingin data lengkap.
 
+## Jendela aplikasi sendiri (bukan tab browser)
+
+NETWATCH otomatis membuka **jendela aplikasinya sendiri** tanpa tab dan address bar.
+Di Windows jendela ini memakai Microsoft Edge (sudah bawaan Windows 10/11), jadi tidak
+perlu install apa-apa lagi. Menutup jendela = menghentikan NETWATCH.
+
+Opsional, untuk jendela native murni: `pip install pywebview` (otomatis dipakai bila ada).
+Untuk mode server saja (dibuka dari PC lain), tambahkan `--no-window`.
+
+### Windows: cukup double-click
+
+1. Install Python 3.12/3.13 (centang *Add python.exe to PATH*) dan [Npcap](https://npcap.com).
+2. Sekali saja, di folder ini: `python -m pip install -r requirements.txt`
+3. Edit `NETWATCH.bat` (klik kanan → Edit): sesuaikan `IFACE`, `SUBNET`, `NETWATCH_PASS`.
+4. Double-click **`NETWATCH.bat`**. Ia meminta izin Administrator lalu membuka jendela NETWATCH.
+
+`NETWATCH-DEMO.bat` membuka mode simulasi (login `admin` / `demo`).
+Bisa juga buat shortcut `NETWATCH.bat` di Desktop.
+
 ## Instalasi & menjalankan
 
 Butuh Python 3.10+.
@@ -66,6 +85,7 @@ sudo NETWATCH_USER=admin NETWATCH_PASS='password-kuat' python3 -m netwatch --ifa
 | `--iface NAME` | Interface yang di-capture (mis. `eth0`, `enp3s0`, `Ethernet`) |
 | `--host` / `--port` | Alamat dashboard. Default `127.0.0.1:8787` (hanya lokal) |
 | `--demo` | Data simulasi |
+| `--no-window` | Jangan buka jendela; jalankan server saja |
 
 Jika `NETWATCH_PASS` tidak diset, password acak dibuat saat start dan dicetak di konsol.
 Untuk membuka dashboard dari PC lain gunakan `--host 0.0.0.0`, sebaiknya hanya di
@@ -87,5 +107,7 @@ netwatch/
   netwatch/capture.py   # sniffing (scapy): DNS, TLS SNI, HTTP, DHCP
   netwatch/store.py     # statistik per perangkat (in-memory)
   netwatch/demo.py      # generator trafik simulasi
+  netwatch/window.py    # jendela desktop (pywebview / Edge app mode)
+  NETWATCH.bat          # launcher Windows (double-click)
   netwatch/static/      # UI (HTML/CSS/JS tanpa framework)
 ```
